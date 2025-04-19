@@ -1,1 +1,52 @@
 
+pipeline {
+    agent any
+
+    environment {
+        PYTHON_ENV = "venv"  // הגדרת משתנה סביבה אם נדרש
+    }
+
+    stages {
+        stage('Checkout') {
+            steps {
+                // שלב זה מבצע Checkout לקוד מה-repository ב-Git
+                echo 'Checking out code from GitHub repository...'
+                git 'https://github.com/NaghmEbrahem30/Jenkins.git'
+            }
+        }
+
+        stage('Setup Environment') {
+            steps {
+                // שלב זה יוצר וירטואליזציה של Python ומתקין תלותיות
+                echo 'Setting up Python environment...'
+                sh 'python3 -m venv $PYTHON_ENV'  // יצירת וירטואל env
+                sh '$PYTHON_ENV/bin/pip install -r requirements.txt'  // התקנת תלותיות
+            }
+        }
+
+        stage('Run Tests') {
+            steps {
+                // שלב זה מריץ את כל המבחנים
+                echo 'Running tests...'
+                sh '$PYTHON_ENV/bin/pytest tests/'  // הרצת מבחני pytest
+            }
+        }
+
+        stage('Deploy') {
+            steps {
+                // שלב זה יבצע פריסה של המערכת
+                echo 'Deploying application...'
+                sh './deploy.sh'  // סקריפט פריסה אם קיים
+            }
+        }
+    }
+
+    post {
+        success {
+            echo 'Build and deploy successful!'
+        }
+        failure {
+            echo 'Build failed. Please check the logs for errors.'
+        }
+    }
+}
